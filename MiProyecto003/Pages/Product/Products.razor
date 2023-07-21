@@ -1,0 +1,75 @@
+@page "/product"
+@inject ILogger<Products> logger;
+@inject IProductService productService;
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IToastService toastService
+
+<head>
+<!-- ... otras referencias ... -->
+<link href="css/custom.css" rel="stylesheet" />
+</head>
+
+
+<h3>Lista de Productos</h3>
+
+@if (products != null)
+{
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+    </thead>
+    <tbody>
+    @foreach (var product in products)
+    {
+        <tr>
+            <td>@product.Title</td>
+            <td>@product.Price</td>
+            <td>
+                <button title="Delete" class="btn btn-danger btn-delete" @onclick="@(() => DeleteProduct(product))"><span class="oi oi-trash"></span></button>
+            </td>
+        </tr>
+    }
+    </tbody>
+    </table>
+}
+else
+{
+    <p>No se encontraron productos.</p>
+}
+@code
+{
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await productService.GetProducts();
+    }
+    private async Task<List<Product>> GetProducts()
+    {
+        return await productService.GetProducts();
+    }
+
+    private async Task DeleteProduct(Product product)
+    {
+        try
+        {
+            // Llamar al servicio para eliminar el producto
+            await productService.DeleteProduct(product.Id);
+            // Actualizar la lista de productos después de la eliminación
+            products.Remove(product);
+            // Mostrar una notificación de éxito utilizando Blazored.Toast
+            toastService.ShowSuccess("Producto eliminado exitosamente.");
+        }
+        catch (Exception ex)
+        {
+            // Mostrar una notificación de error si la eliminación falla
+            toastService.ShowError($"Error al eliminar el producto: {ex.Message}");
+        }
+}
+}
+
